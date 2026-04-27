@@ -22,7 +22,7 @@ export function canManageUsers(userDoc) {
 }
 
 export function canViewAllOrders(userDoc) {
-  return ['super_admin', 'production'].includes(userDoc?.role)
+  return ['super_admin', 'admin'].includes(userDoc?.role)
 }
 
 export function isSuperAdmin(userDoc) {
@@ -33,6 +33,6 @@ export function isAdmin(userDoc) {
   return ['admin', 'super_admin'].includes(userDoc?.role)
 }
 
-export function isProduction(userDoc) {
-  return ['production', 'super_admin'].includes(userDoc?.role)
+export function isViewer(userDoc) {
+  return userDoc?.role === 'viewer'
 }

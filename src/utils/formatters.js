@@ -27,9 +27,8 @@ export function formatFileSize(bytes) {
 
 export const ROLE_LABELS = {
   super_admin: 'Super Admin',
-  admin: 'University Admin',
-  university_staff: 'University Staff',
-  production: 'Distinctive Choice',
+  admin: 'Admin',
+  viewer: 'Viewer',
 }
 
 export const STATUS_LABELS = {

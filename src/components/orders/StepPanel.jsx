@@ -131,7 +131,7 @@ export default function StepPanel({ order, stepIndex }) {
         performedByRole: userDoc.role,
         metadata: { rejectionReason: reason },
       })
-      toast.success('Step rejected — Distinctive Choice has been notified')
+      toast.success('Step rejected')
     } catch {
       toast.error('Failed to reject — please try again')
     } finally {

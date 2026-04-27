@@ -146,7 +146,7 @@ export default function OrderNew() {
     }
   }
 
-  const isSuperAdmin = userDoc?.role === 'super_admin'
+  const canPickUniversity = ['admin', 'super_admin'].includes(userDoc?.role)
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -158,7 +158,7 @@ export default function OrderNew() {
           <h2 className="text-sm font-medium text-gray-700 mb-4">Order details</h2>
 
           <div className="grid grid-cols-2 gap-4">
-            {isSuperAdmin && (
+            {canPickUniversity && (
               <div className="col-span-2 sm:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">University</label>
                 <select

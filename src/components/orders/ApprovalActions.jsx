@@ -50,7 +50,7 @@ export default function ApprovalActions({ onApprove, onReject, loading }) {
         }
       >
         <p className="text-sm text-gray-600 mb-4">
-          Please provide a reason for rejecting this step. Distinctive Choice will be notified.
+          Please provide a reason for rejecting this step.
         </p>
         <textarea
           value={reason}

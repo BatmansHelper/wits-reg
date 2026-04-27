@@ -2,15 +2,14 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../../hooks/useAuth'
-import { createUserDoc, getUniversities, getAllFaculties } from '../../lib/firestore'
+import { createUserDoc, getUniversities } from '../../lib/firestore'
 import Button from '../../components/ui/Button'
 import toast from 'react-hot-toast'
 
 const ROLES = [
-  { value: 'admin', label: 'University Admin' },
-  { value: 'university_staff', label: 'University Staff' },
-  { value: 'production', label: 'Distinctive Choice (Production)' },
   { value: 'super_admin', label: 'Super Admin' },
+  { value: 'admin', label: 'Admin' },
+  { value: 'viewer', label: 'Viewer' },
 ]
 
 export default function UserNew() {
@@ -18,24 +17,18 @@ export default function UserNew() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [universities, setUniversities] = useState([])
-  const [faculties, setFaculties] = useState([])
   const { register, handleSubmit, watch, formState: { errors } } = useForm()
 
-  const selectedUniId = watch('universityId')
+  const selectedRole = watch('role')
+  const needsUniversity = selectedRole === 'viewer'
 
   useEffect(() => {
-    Promise.all([getUniversities(), getAllFaculties()])
-      .then(([unis, facs]) => { setUniversities(unis); setFaculties(facs) })
+    getUniversities().then(setUniversities)
   }, [])
-
-  const filteredFaculties = faculties.filter(f => f.universityId === selectedUniId)
 
   async function onSubmit(data) {
     setLoading(true)
     try {
-      // NOTE: Creating a Firebase Auth user requires Firebase Admin SDK (Cloud Functions).
-      // For now, create the Firestore user doc. In production, this calls a Cloud Function
-      // that creates the Auth user and sends the password reset email.
       const uid = `pending_${Date.now()}`
       await createUserDoc(uid, {
         uid,
@@ -43,10 +36,9 @@ export default function UserNew() {
         displayName: data.displayName,
         role: data.role,
         universityId: data.universityId || null,
-        facultyId: data.facultyId || null,
         createdBy: userDoc.id,
       })
-      toast.success(`User "${data.displayName}" created. Set up Firebase Auth manually or via Cloud Function.`)
+      toast.success(`User "${data.displayName}" created.`)
       navigate('/admin/users')
     } catch (err) {
       console.error(err)
@@ -96,31 +88,19 @@ export default function UserNew() {
           {errors.role && <p className="mt-1 text-xs text-danger">{errors.role.message}</p>}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">University</label>
-          <select
-            {...register('universityId')}
-            className="w-full border border-border-default rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-wits-blue"
-          >
-            <option value="">None / All universities</option>
-            {universities.map(u => (
-              <option key={u.id} value={u.id}>{u.name}</option>
-            ))}
-          </select>
-        </div>
-
-        {filteredFaculties.length > 0 && (
+        {needsUniversity && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Faculty (optional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">University</label>
             <select
-              {...register('facultyId')}
+              {...register('universityId', { required: needsUniversity ? 'Select a university for this viewer' : false })}
               className="w-full border border-border-default rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-wits-blue"
             >
-              <option value="">All faculties</option>
-              {filteredFaculties.map(f => (
-                <option key={f.id} value={f.id}>{f.name}</option>
+              <option value="">Select university</option>
+              {universities.map(u => (
+                <option key={u.id} value={u.id}>{u.name}</option>
               ))}
             </select>
+            {errors.universityId && <p className="mt-1 text-xs text-danger">{errors.universityId.message}</p>}
           </div>
         )}
 
@@ -129,10 +109,6 @@ export default function UserNew() {
           <Button type="submit" loading={loading}>Create user</Button>
         </div>
       </form>
-
-      <p className="text-xs text-gray-400 mt-4 text-center">
-        A password reset email is sent automatically via Cloud Functions once Firebase Auth is configured.
-      </p>
     </div>
   )
 }

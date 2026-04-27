@@ -23,12 +23,10 @@ import Button from '../../components/ui/Button'
 import Modal from '../../components/ui/Modal'
 import toast from 'react-hot-toast'
 
-const ROLES = ['super_admin', 'admin', 'university_staff', 'production']
+const ROLES = ['super_admin', 'admin']
 const ROLE_LABELS = {
   super_admin: 'Super Admin',
-  admin: 'University Admin',
-  university_staff: 'University Staff',
-  production: 'Distinctive Choice',
+  admin: 'Admin',
 }
 
 function StepCard({ step, index, onEdit, onDelete, id }) {
