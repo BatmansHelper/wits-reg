@@ -17,7 +17,7 @@ const STATUS_FILTERS = [
 export default function OrdersList() {
   const { userDoc } = useAuth()
   const [statusFilter, setStatusFilter] = useState(undefined)
-  const { orders, loading } = useOrders(statusFilter)
+  const { orders, loading, error } = useOrders(statusFilter)
   const canCreate = canCreateOrder(userDoc)
 
   return (

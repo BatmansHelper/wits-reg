@@ -115,7 +115,7 @@ export function subscribeToOrder(orderId, callback) {
   return onSnapshot(doc(db, 'orders', orderId), callback)
 }
 
-export function subscribeToOrders(filters, callback) {
+export function subscribeToOrders(filters, callback, onError) {
   let q = collection(db, 'orders')
   const constraints = [orderBy('createdAt', 'desc')]
 
@@ -127,7 +127,7 @@ export function subscribeToOrders(filters, callback) {
   }
 
   q = query(q, ...constraints)
-  return onSnapshot(q, callback)
+  return onSnapshot(q, callback, onError)
 }
 
 // Activity log
