@@ -5,26 +5,27 @@ export default function StepTracker({ steps, currentStepIndex, onStepClick, comp
 
   if (compact) {
     return (
-      <div className="flex items-center gap-1">
+      <div className="flex items-center w-full">
         {steps.map((step, i) => {
           const isCompleted = step.status === 'approved' || step.status === 'skipped' || i < currentStepIndex
           const isCurrent = i === currentStepIndex
           const isSkipped = step.status === 'skipped'
           return (
-            <div key={i} className="flex items-center">
+            <div key={i} className="flex items-center flex-1 last:flex-none min-w-0">
               <div className={`
-                w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0
+                w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-all
                 ${isCompleted && !isSkipped ? 'bg-wits-blue' : ''}
-                ${isCurrent ? 'bg-wits-gold' : ''}
-                ${!isCompleted && !isCurrent ? 'bg-gray-200' : ''}
+                ${isCurrent ? 'bg-wits-gold ring-[3px] ring-wits-gold/25' : ''}
+                ${isSkipped ? 'bg-gray-200' : ''}
+                ${!isCompleted && !isCurrent && !isSkipped ? 'bg-gray-200' : ''}
               `}>
                 {isCompleted && !isSkipped
-                  ? <Check size={8} className="text-white" strokeWidth={3} />
-                  : <span className="text-[8px] font-medium text-white">{i + 1}</span>
+                  ? <Check size={9} className="text-white" strokeWidth={3} />
+                  : <span className="text-[8px] font-bold text-white">{i + 1}</span>
                 }
               </div>
               {i < steps.length - 1 && (
-                <div className={`w-3 h-0.5 ${isCompleted ? 'bg-wits-blue' : 'bg-gray-200'}`} />
+                <div className={`flex-1 h-0.5 mx-1 rounded-full ${isCompleted ? 'bg-wits-blue' : 'bg-gray-200'}`} />
               )}
             </div>
           )
@@ -42,7 +43,6 @@ export default function StepTracker({ steps, currentStepIndex, onStepClick, comp
 
         return (
           <div key={i} className="flex items-start flex-1 min-w-0">
-            {/* Dot + label column */}
             <div className="flex flex-col items-center flex-shrink-0">
               <button
                 onClick={() => onStepClick?.(i)}
@@ -50,7 +50,7 @@ export default function StepTracker({ steps, currentStepIndex, onStepClick, comp
                 className={`
                   w-8 h-8 rounded-full flex items-center justify-center transition-all flex-shrink-0
                   ${isCompleted && !isSkipped ? 'bg-wits-blue' : ''}
-                  ${isCurrent ? 'bg-wits-gold' : ''}
+                  ${isCurrent ? 'bg-wits-gold ring-4 ring-wits-gold/20' : ''}
                   ${isSkipped ? 'bg-gray-200' : ''}
                   ${!isCompleted && !isCurrent && !isSkipped ? 'bg-gray-200' : ''}
                   ${onStepClick ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}
@@ -58,25 +58,23 @@ export default function StepTracker({ steps, currentStepIndex, onStepClick, comp
               >
                 {isCompleted && !isSkipped
                   ? <Check size={14} className="text-white" strokeWidth={3} />
-                  : <span className="text-xs font-medium text-white">{i + 1}</span>
+                  : <span className="text-xs font-bold text-white">{i + 1}</span>
                 }
               </button>
               {showLabels && (
-                <button
-                  onClick={() => onStepClick?.(i)}
-                  className={`mt-2 text-xs text-center leading-tight w-16 transition-colors
-                    ${isCurrent ? 'text-gray-900 font-medium' : 'text-gray-400 hover:text-gray-700'}
-                    ${onStepClick ? 'cursor-pointer' : 'cursor-default'}
+                <span
+                  className={`mt-2 text-[11px] text-center leading-tight w-16 truncate block
+                    ${isCurrent ? 'text-gray-900 font-semibold' : isCompleted ? 'text-wits-blue font-medium' : 'text-gray-400'}
                   `}
+                  title={step.title}
                 >
                   {step.title}
-                </button>
+                </span>
               )}
             </div>
 
-            {/* Connector line — only between dots */}
             {i < steps.length - 1 && (
-              <div className={`flex-1 h-0.5 mt-4 mx-1 ${isCompleted ? 'bg-wits-blue' : 'bg-gray-200'}`} />
+              <div className={`flex-1 h-0.5 mt-4 mx-1 rounded-full ${isCompleted ? 'bg-wits-blue' : 'bg-gray-200'}`} />
             )}
           </div>
         )

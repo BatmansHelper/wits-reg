@@ -1,26 +1,34 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Clock, FileText, ImageIcon } from 'lucide-react'
+import { ChevronLeft, Clock, FileText, ImageIcon, Package } from 'lucide-react'
 import { useOrder, useOrderActivity } from '../../hooks/useOrder'
 import { useAuth } from '../../hooks/useAuth'
 import StepTracker from '../../components/orders/StepTracker'
 import StepPanel from '../../components/orders/StepPanel'
 import OrderItemsTable from '../../components/orders/OrderItemsTable'
 import Badge from '../../components/ui/Badge'
-import { formatDate, formatDateTime, formatRelative, STATUS_LABELS, ROLE_LABELS } from '../../utils/formatters'
+import { formatDate, formatRelative, STATUS_LABELS } from '../../utils/formatters'
 
 function ActivityItem({ item }) {
+  const initials = (item.performedByName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
   return (
-    <div className="flex gap-3 py-3 border-b border-border-default last:border-0">
-      <div className="w-7 h-7 rounded-full bg-wits-blue-light flex items-center justify-center flex-shrink-0 mt-0.5">
-        <span className="text-xs font-medium text-wits-blue">
-          {(item.performedByName || '?').charAt(0).toUpperCase()}
-        </span>
+    <div className="flex gap-3 py-4 border-b border-gray-100 last:border-0">
+      <div className="w-8 h-8 rounded-full bg-wits-blue-light flex items-center justify-center flex-shrink-0">
+        <span className="text-xs font-bold text-wits-blue">{initials}</span>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-900">{item.message}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{formatRelative(item.timestamp)}</p>
+      <div className="flex-1 min-w-0 pt-0.5">
+        <p className="text-sm text-gray-800">{item.message}</p>
+        <p className="text-xs text-gray-400 mt-1">{formatRelative(item.timestamp)}</p>
       </div>
+    </div>
+  )
+}
+
+function InfoRow({ label, children }) {
+  return (
+    <div className="flex items-start justify-between gap-3 py-3 border-b border-gray-50 last:border-0">
+      <span className="text-sm text-gray-400 font-medium flex-shrink-0">{label}</span>
+      <span className="text-sm text-gray-900 font-semibold text-right">{children}</span>
     </div>
   )
 }
@@ -43,41 +51,68 @@ export default function OrderDetail() {
 
   if (error || !order) {
     return (
-      <div className="p-6">
+      <div className="p-8">
         <p className="text-danger">{error || 'Order not found'}</p>
       </div>
     )
   }
 
   const displayStepIndex = activeStepIndex ?? order.currentStepIndex
+  const totalSteps = order.steps?.length || 0
+  const completedCount = order.steps?.filter(
+    (s, i) => s.status === 'approved' || s.status === 'skipped' || i < order.currentStepIndex
+  ).length || 0
+  const progressPct = totalSteps > 0 ? Math.round((completedCount / totalSteps) * 100) : 0
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-8 max-w-6xl mx-auto">
       {/* Back */}
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 mb-5 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-800 mb-6 transition-colors font-medium"
       >
-        <ChevronLeft size={16} />
+        <ChevronLeft size={15} />
         Back
       </button>
 
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-mono text-gray-400">{order.orderNumber}</span>
-            <Badge label={STATUS_LABELS[order.status] || order.status} variant={order.status} />
-          </div>
-          <h1 className="text-xl font-medium text-gray-900 mt-1">{order.title}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{order.facultyName} · {order.universityName}</p>
+      <div className="mb-8">
+        <div className="flex items-center gap-2.5 flex-wrap mb-2">
+          <span className="text-xs font-mono text-gray-400 tracking-wide">{order.orderNumber}</span>
+          {order.poNumber && (
+            <span className="text-xs font-mono bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md">
+              {order.poNumber}
+            </span>
+          )}
+          <Badge label={STATUS_LABELS[order.status] || order.status} variant={order.status} />
         </div>
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{order.title}</h1>
+        <p className="text-sm text-gray-400 mt-1 font-medium">{order.facultyName} · {order.universityName}</p>
       </div>
 
-      {/* Step tracker */}
+      {/* Step progress card */}
       {order.steps?.length > 0 && (
-        <div className="bg-white rounded-lg border border-border-default p-5 mb-6">
-          <h2 className="text-xs font-medium text-gray-500 mb-4 uppercase tracking-wider">Progress</h2>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Progress</p>
+              <p className="text-sm font-semibold text-gray-700">
+                {completedCount} of {totalSteps} steps complete
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-gray-900 tabular-nums">{progressPct}%</p>
+            </div>
+          </div>
+
+          {/* Progress bar */}
+          <div className="h-1.5 bg-gray-100 rounded-full mb-6 overflow-hidden">
+            <div
+              className="h-full bg-wits-blue rounded-full transition-all duration-500"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+
           <StepTracker
             steps={order.steps}
             currentStepIndex={order.currentStepIndex}
@@ -93,55 +128,48 @@ export default function OrderDetail() {
           <StepPanel order={order} stepIndex={displayStepIndex} />
         </div>
 
-        {/* Sidebar: order info */}
+        {/* Sidebar */}
         <div className="space-y-4">
-          {/* Order info card */}
-          <div className="bg-white rounded-lg border border-border-default p-5">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">Order info</h3>
-            <dl className="space-y-3 text-sm">
-              <div>
-                <dt className="text-gray-500">PO Number</dt>
-                <dd className="font-medium text-gray-900">{order.poNumber || '—'}</dd>
-              </div>
-              <div>
-                <dt className="text-gray-500">Created</dt>
-                <dd className="text-gray-900">{formatDate(order.createdAt)}</dd>
-              </div>
+          {/* Order info */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Order info</p>
+            <div className="mt-3">
+              <InfoRow label="PO Number">{order.poNumber || '—'}</InfoRow>
+              <InfoRow label="Created">{formatDate(order.createdAt)}</InfoRow>
               {order.estimatedDelivery && (
-                <div>
-                  <dt className="text-gray-500">Est. delivery</dt>
-                  <dd className="flex items-center gap-1 text-gray-900">
-                    <Clock size={13} />
+                <InfoRow label="Est. delivery">
+                  <span className="flex items-center gap-1 justify-end">
+                    <Clock size={12} />
                     {formatDate(order.estimatedDelivery)}
-                  </dd>
-                </div>
+                  </span>
+                </InfoRow>
               )}
               {order.poDocumentUrl && (
-                <div>
+                <div className="pt-3">
                   <a
                     href={order.poDocumentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-wits-blue hover:underline text-sm"
+                    className="flex items-center gap-1.5 text-sm text-wits-blue hover:underline font-semibold"
                   >
                     <FileText size={14} />
                     View PO document
                   </a>
                 </div>
               )}
-            </dl>
+            </div>
           </div>
 
           {/* Order items */}
-          <div className="bg-white rounded-lg border border-border-default p-5">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">Items</h3>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Items</p>
             <OrderItemsTable items={order.orderItems} />
           </div>
 
           {/* Reference images */}
           {order.referenceImages?.length > 0 && (
-            <div className="bg-white rounded-lg border border-border-default p-5">
-              <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Reference Images</h3>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Reference Images</p>
               <div className="grid grid-cols-2 gap-2">
                 {order.referenceImages.map((img, i) => (
                   img.fileType === 'image' ? (
@@ -149,7 +177,7 @@ export default function OrderDetail() {
                       <img
                         src={img.url}
                         alt={img.name}
-                        className="w-full h-24 object-cover rounded border border-border-default hover:opacity-80 transition-opacity"
+                        className="w-full h-24 object-cover rounded-xl border border-gray-100 hover:opacity-80 transition-opacity"
                       />
                     </a>
                   ) : (
@@ -158,10 +186,10 @@ export default function OrderDetail() {
                       href={img.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 p-2 border border-border-default rounded text-xs text-wits-blue hover:bg-surface transition-colors"
+                      className="flex items-center gap-2 p-3 border border-gray-100 rounded-xl text-xs text-wits-blue hover:bg-gray-50 transition-colors"
                     >
                       <ImageIcon size={14} />
-                      <span className="truncate">{img.name}</span>
+                      <span className="truncate font-medium">{img.name}</span>
                     </a>
                   )
                 ))}
@@ -171,19 +199,22 @@ export default function OrderDetail() {
 
           {/* Notes */}
           {order.notes && (
-            <div className="bg-white rounded-lg border border-border-default p-5">
-              <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Notes</h3>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{order.notes}</p>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Notes</p>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{order.notes}</p>
             </div>
           )}
         </div>
       </div>
 
       {/* Activity log */}
-      <div className="mt-6 bg-white rounded-lg border border-border-default p-5">
-        <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">Activity log</h3>
+      <div className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Activity log</p>
+        <p className="text-sm font-semibold text-gray-700 mb-4">
+          {activity.length} {activity.length === 1 ? 'event' : 'events'}
+        </p>
         {activity.length === 0 ? (
-          <p className="text-sm text-gray-400">No activity yet.</p>
+          <p className="text-sm text-gray-400 py-4">No activity yet.</p>
         ) : (
           <div>
             {activity.map(item => (

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Clock, Package } from 'lucide-react'
+import { Clock, Package, ArrowRight } from 'lucide-react'
 import StepTracker from './StepTracker'
 import Badge from '../ui/Badge'
 import { formatDate, STATUS_LABELS } from '../../utils/formatters'
@@ -17,59 +17,115 @@ export default function OrderCard({ order, userDoc }) {
   const navigate = useNavigate()
   const action = needsAction(order, userDoc)
   const currentStep = order.steps?.[order.currentStepIndex]
-
-  const borderColor = action ? 'border-l-wits-gold' : 'border-l-wits-blue'
+  const totalSteps = order.steps?.length || 0
+  const completedCount = order.steps?.filter(
+    (s, i) => s.status === 'approved' || s.status === 'skipped' || i < order.currentStepIndex
+  ).length || 0
+  const progressPct = totalSteps > 0 ? Math.round((completedCount / totalSteps) * 100) : 0
 
   return (
     <div
       onClick={() => navigate(`/orders/${order.id}`)}
-      className={`bg-white rounded-lg border border-border-default border-l-[3px] ${borderColor} p-4 cursor-pointer hover:shadow-md transition-shadow`}
+      className={`bg-white rounded-2xl border shadow-sm cursor-pointer hover:shadow-lg transition-all duration-200 group overflow-hidden
+        ${action ? 'border-amber-200' : 'border-gray-100'}`}
     >
-      {/* Top row */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-mono text-gray-400">{order.orderNumber}</span>
-            {order.poNumber && (
-              <span className="text-xs font-mono bg-surface text-gray-500 px-1.5 py-0.5 rounded">{order.poNumber}</span>
-            )}
-            <Badge label={STATUS_LABELS[order.status] || order.status} variant={order.status} />
-            {action && <Badge label="Action needed" variant="awaiting_approval" />}
+      {/* Action indicator bar */}
+      {action && (
+        <div className="h-[3px] bg-gradient-to-r from-wits-gold via-amber-400 to-wits-gold" />
+      )}
+
+      <div className="p-5">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-mono text-gray-400 tracking-wide">{order.orderNumber}</span>
+              {order.poNumber && (
+                <span className="text-xs font-mono bg-gray-50 text-gray-500 px-2 py-0.5 rounded-md border border-gray-100">
+                  {order.poNumber}
+                </span>
+              )}
+              <Badge label={STATUS_LABELS[order.status] || order.status} variant={order.status} />
+              {action && <Badge label="Action needed" variant="awaiting_approval" />}
+            </div>
+            <h3 className="mt-2 text-base font-semibold text-gray-900 group-hover:text-wits-blue transition-colors truncate">
+              {order.title}
+            </h3>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {order.universityName} · {order.facultyName}
+            </p>
           </div>
-          <h3 className="mt-1 font-medium text-gray-900 truncate">{order.title}</h3>
-          <p className="text-sm text-gray-500 mt-0.5">{order.universityName} · {order.facultyName}</p>
+
+          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+            {order.estimatedDelivery && (
+              <div className="flex items-center gap-1.5 text-xs text-gray-400 bg-gray-50 rounded-lg px-2.5 py-1.5 border border-gray-100">
+                <Clock size={11} />
+                <span>{formatDate(order.estimatedDelivery)}</span>
+              </div>
+            )}
+            <ArrowRight size={16} className="text-gray-300 group-hover:text-wits-blue group-hover:translate-x-0.5 transition-all" />
+          </div>
         </div>
-        {order.estimatedDelivery && (
-          <div className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0">
-            <Clock size={12} />
-            {formatDate(order.estimatedDelivery)}
+
+        {/* Item chips */}
+        {order.orderItems?.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {order.orderItems.slice(0, 3).map((item, i) => (
+              <span key={i} className="inline-flex items-center gap-1.5 text-xs bg-gray-50 text-gray-600 rounded-lg px-2.5 py-1 border border-gray-100">
+                <Package size={10} className="text-gray-400" />
+                {item.quantity}× {item.description}
+              </span>
+            ))}
+            {order.orderItems.length > 3 && (
+              <span className="text-xs text-gray-400 self-center">+{order.orderItems.length - 3} more</span>
+            )}
           </div>
         )}
       </div>
 
-      {/* Item chips */}
-      {order.orderItems?.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {order.orderItems.slice(0, 3).map((item, i) => (
-            <span key={i} className="inline-flex items-center gap-1 text-xs bg-surface text-gray-600 rounded px-2 py-0.5">
-              <Package size={10} />
-              {item.quantity}× {item.description}
-            </span>
-          ))}
-          {order.orderItems.length > 3 && (
-            <span className="text-xs text-gray-400">+{order.orderItems.length - 3} more</span>
-          )}
-        </div>
-      )}
-
-      {/* Step progress */}
+      {/* Step progression — prominent section */}
       {order.steps?.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-border-default">
-          <div className="flex items-center gap-3">
-            <StepTracker steps={order.steps} currentStepIndex={order.currentStepIndex} compact />
-            <span className="text-xs font-medium text-gray-600 flex-shrink-0">
-              {currentStep?.title || '—'}
-            </span>
+        <div className="px-5 pb-5">
+          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+            {/* Progress header */}
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Progress</span>
+              <div className="flex items-center gap-2">
+                {currentStep && (
+                  <span className="text-xs font-semibold text-gray-700">
+                    {currentStep.title}
+                  </span>
+                )}
+                <span className="text-[11px] font-semibold text-gray-400 tabular-nums">
+                  {completedCount}/{totalSteps}
+                </span>
+              </div>
+            </div>
+
+            {/* Step dots — full width compact */}
+            <StepTracker
+              steps={order.steps}
+              currentStepIndex={order.currentStepIndex}
+              compact
+            />
+
+            {/* Progress bar */}
+            <div className="mt-3 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-wits-blue rounded-full transition-all duration-500"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+
+            {/* Current step label */}
+            {currentStep && (
+              <div className="mt-3 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-wits-gold flex-shrink-0" />
+                <span className="text-xs font-medium text-gray-500">
+                  Currently: <span className="text-gray-800">{currentStep.title}</span>
+                </span>
+              </div>
+            )}
           </div>
         </div>
       )}
