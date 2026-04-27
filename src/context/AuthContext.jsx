@@ -27,10 +27,11 @@ export function AuthProvider({ children }) {
               setUserDoc(data)
             }
           } else {
+            console.warn('[Auth] No Firestore user doc found for uid:', firebaseUser.uid)
             setUserDoc(null)
           }
         } catch (err) {
-          console.error('Error fetching user doc:', err)
+          console.error('[Auth] getUserDoc failed — code:', err.code, 'message:', err.message)
           setUserDoc(null)
         }
       } else {
