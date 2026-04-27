@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../../hooks/useAuth'
 import { createUserDoc, getUniversities } from '../../lib/firestore'
+import { createAuthUser } from '../../lib/auth'
 import Button from '../../components/ui/Button'
 import toast from 'react-hot-toast'
 
@@ -29,7 +30,7 @@ export default function UserNew() {
   async function onSubmit(data) {
     setLoading(true)
     try {
-      const uid = `pending_${Date.now()}`
+      const uid = await createAuthUser(data.email)
       await createUserDoc(uid, {
         uid,
         email: data.email,
@@ -38,11 +39,15 @@ export default function UserNew() {
         universityId: data.universityId || null,
         createdBy: userDoc.id,
       })
-      toast.success(`User "${data.displayName}" created.`)
+      toast.success(`User "${data.displayName}" created — password setup email sent to ${data.email}`)
       navigate('/admin/users')
     } catch (err) {
       console.error(err)
-      toast.error('Failed to create user')
+      if (err.code === 'auth/email-already-in-use') {
+        toast.error('A user with this email already exists')
+      } else {
+        toast.error('Failed to create user')
+      }
     } finally {
       setLoading(false)
     }
