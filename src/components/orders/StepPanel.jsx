@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { FileText, Image, File, Download, SkipForward, ChevronRight } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { canApproveStep, canUploadToStep, canSkipStep } from '../../utils/roleChecks'
-import { updateOrder, addActivity, serverTimestamp } from '../../lib/firestore'
+import { updateOrder, addActivity, serverTimestamp, Timestamp } from '../../lib/firestore'
 import DocumentUploader from './DocumentUploader'
 import ApprovalActions from './ApprovalActions'
 import Badge from '../ui/Badge'
@@ -46,7 +46,7 @@ export default function StepPanel({ order, stepIndex }) {
       fileType: fileResult.fileType,
       uploadedBy: userDoc.id,
       uploadedByName: userDoc.displayName,
-      uploadedAt: serverTimestamp(),
+      uploadedAt: Timestamp.now(),
       sizeBytes: file.size,
     }
     updatedSteps[stepIndex] = {
@@ -76,14 +76,14 @@ export default function StepPanel({ order, stepIndex }) {
         ...updatedSteps[stepIndex],
         status: 'approved',
         approvedBy: userDoc.id,
-        approvedAt: serverTimestamp(),
-        completedAt: serverTimestamp(),
+        approvedAt: Timestamp.now(),
+        completedAt: Timestamp.now(),
       }
 
       const nextIndex = stepIndex + 1
       const hasNext = nextIndex < order.steps.length
       if (hasNext) {
-        updatedSteps[nextIndex] = { ...updatedSteps[nextIndex], status: 'in_progress', startedAt: serverTimestamp() }
+        updatedSteps[nextIndex] = { ...updatedSteps[nextIndex], status: 'in_progress', startedAt: Timestamp.now() }
       }
 
       await updateOrder(order.id, {
@@ -147,11 +147,11 @@ export default function StepPanel({ order, stepIndex }) {
         ...updatedSteps[stepIndex],
         status: 'skipped',
         skippedBy: userDoc.id,
-        skippedAt: serverTimestamp(),
+        skippedAt: Timestamp.now(),
       }
       const nextIndex = stepIndex + 1
       if (nextIndex < order.steps.length) {
-        updatedSteps[nextIndex] = { ...updatedSteps[nextIndex], status: 'in_progress', startedAt: serverTimestamp() }
+        updatedSteps[nextIndex] = { ...updatedSteps[nextIndex], status: 'in_progress', startedAt: Timestamp.now() }
       }
 
       await updateOrder(order.id, {

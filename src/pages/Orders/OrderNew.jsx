@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Plus, Trash2 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
-import { createOrder, addActivity, getUniversities, getAllFaculties, getStepTemplates, serverTimestamp } from '../../lib/firestore'
+import { createOrder, addActivity, getUniversities, getAllFaculties, getStepTemplates, serverTimestamp, Timestamp } from '../../lib/firestore'
 import { uploadOrderFile } from '../../lib/storage'
 import { getTemplateForUniversity } from '../../hooks/useStepTemplate'
 import { generateOrderNumber } from '../../utils/orderNumber'
@@ -72,7 +72,7 @@ export default function OrderNew() {
 
       // Activate first step immediately
       if (steps.length > 0) {
-        steps[0] = { ...steps[0], status: 'in_progress', startedAt: serverTimestamp() }
+        steps[0] = { ...steps[0], status: 'in_progress', startedAt: Timestamp.now() }
       }
 
       const university = universities.find(u => u.id === data.universityId)
@@ -114,7 +114,7 @@ export default function OrderNew() {
               fileType: result.fileType,
               uploadedBy: userDoc.id,
               uploadedByName: userDoc.displayName,
-              uploadedAt: serverTimestamp(),
+              uploadedAt: Timestamp.now(),
               sizeBytes: poFile.size,
             }],
           }
