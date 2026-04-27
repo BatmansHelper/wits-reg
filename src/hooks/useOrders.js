@@ -4,13 +4,20 @@ import { useAuth } from './useAuth'
 import { canViewAllOrders } from '../utils/roleChecks'
 
 export function useOrders(statusFilter) {
-  const { userDoc } = useAuth()
+  const { userDoc, loading: authLoading } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (!userDoc) return
+    if (authLoading) return
+    if (!userDoc) {
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
 
     const filters = {}
     if (!canViewAllOrders(userDoc)) {
@@ -30,7 +37,7 @@ export function useOrders(statusFilter) {
     })
 
     return unsubscribe
-  }, [userDoc, statusFilter])
+  }, [userDoc, authLoading, statusFilter])
 
   return { orders, loading, error }
 }
