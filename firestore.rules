@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function role() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role; }
+    function isSuperAdmin() { return isSignedIn() && role() == 'super_admin'; }
+    function isAdmin() { return isSignedIn() && (role() == 'admin' || role() == 'super_admin'); }
+    function isProduction() { return isSignedIn() && (role() == 'production' || role() == 'super_admin'); }
+    function sameUni(universityId) {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.universityId == universityId;
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin());
+      allow create, update, delete: if isSuperAdmin();
+    }
+
+    match /universities/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
+    }
+
+    match /faculties/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
+    }
+
+    match /stepTemplates/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow read: if isSignedIn() && (
+        isSuperAdmin() || isProduction() ||
+        sameUni(resource.data.universityId)
+      );
+      allow create: if isAdmin();
+      allow update: if isSignedIn() && (
+        isSuperAdmin() || isProduction() ||
+        (isAdmin() && sameUni(resource.data.universityId)) ||
+        (role() == 'university_staff' && sameUni(resource.data.universityId))
+      );
+      allow delete: if isSuperAdmin();
+
+      match /activity/{activityId} {
+        allow read: if isSignedIn() && (
+          isSuperAdmin() || isProduction() ||
+          sameUni(get(/databases/$(database)/documents/orders/$(orderId)).data.universityId)
+        );
+        allow create: if isSignedIn();
+        allow update, delete: if isSuperAdmin();
+      }
+    }
+  }
+}

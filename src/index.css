@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --wits-blue: #003DA5;
+  --wits-blue-light: #E6EEFF;
+  --wits-blue-mid: #B5C8F4;
+  --wits-gold: #C9A84C;
+  --wits-gold-light: #FBF4E3;
+  --wits-gold-mid: #F0D58A;
+  --surface: #F7F7F5;
+  --border: #E2E0D8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #F7F7F5;
+  color: #111111;
+}
