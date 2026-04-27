@@ -57,7 +57,16 @@ export default function OrdersList() {
         </div>
       )}
 
-      {!loading && orders.length === 0 && (
+      {!loading && error && (
+        <div className="bg-danger-bg border border-danger/20 rounded-lg p-4 text-sm text-danger">
+          <strong>Firestore error:</strong> {error}
+          <p className="mt-1 text-xs text-gray-600">
+            Your security rules may not be deployed yet. Run <code className="bg-white px-1 rounded">firebase deploy --only firestore:rules</code> or temporarily set rules to allow all in the Firebase Console.
+          </p>
+        </div>
+      )}
+
+      {!loading && !error && orders.length === 0 && (
         <div className="bg-white rounded-lg border border-border-default p-12 text-center">
           <p className="text-gray-500">No orders found.</p>
         </div>

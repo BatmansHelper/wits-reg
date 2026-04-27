@@ -23,6 +23,10 @@ export function useOrders(statusFilter) {
     const unsubscribe = subscribeToOrders(filters, snapshot => {
       setOrders(snapshot.docs.map(d => ({ id: d.id, ...d.data() })))
       setLoading(false)
+    }, err => {
+      console.error('Orders subscription error:', err)
+      setError(err.message)
+      setLoading(false)
     })
 
     return unsubscribe

@@ -16,6 +16,10 @@ export function useOrder(orderId) {
         setError('Order not found')
       }
       setLoading(false)
+    }, err => {
+      console.error('Order subscription error:', err)
+      setError(err.message)
+      setLoading(false)
     })
 
     return unsubscribe
