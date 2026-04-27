@@ -4,7 +4,7 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { Plus, Trash2 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { createOrder, addActivity, getUniversities, getAllFaculties, getStepTemplates, serverTimestamp, Timestamp } from '../../lib/firestore'
-import { uploadOrderFile } from '../../lib/storage'
+import { uploadOrderFile, uploadReferenceImage } from '../../lib/storage'
 import { getTemplateForUniversity } from '../../hooks/useStepTemplate'
 import { generateOrderNumber } from '../../utils/orderNumber'
 import { DEFAULT_STEPS } from '../../utils/defaultTemplate'
@@ -36,6 +36,7 @@ export default function OrderNew() {
   const [faculties, setFaculties] = useState([])
   const [templates, setTemplates] = useState([])
   const [poFile, setPoFile] = useState(null)
+  const [refFiles, setRefFiles] = useState([])
 
   const { register, handleSubmit, watch, formState: { errors }, control } = useForm({
     defaultValues: {
@@ -122,6 +123,17 @@ export default function OrderNew() {
           await updateOrder(ref.id, { steps: updatedSteps, poDocumentUrl: result.url })
         } catch {
           toast.error('Order created but PO upload failed')
+        }
+      }
+
+      // Upload reference images if provided
+      if (refFiles.length > 0) {
+        try {
+          const uploads = await Promise.all(refFiles.map(f => uploadReferenceImage(ref.id, f)))
+          const { updateOrder } = await import('../../lib/firestore')
+          await updateOrder(ref.id, { referenceImages: uploads })
+        } catch {
+          toast.error('Order created but some reference images failed to upload')
         }
       }
 
@@ -224,6 +236,20 @@ export default function OrderNew() {
                 onChange={e => setPoFile(e.target.files?.[0] || null)}
                 className="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-border-default file:text-sm file:bg-white file:text-gray-700 hover:file:bg-surface"
               />
+            </div>
+
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Reference Images (optional)</label>
+              <input
+                type="file"
+                accept=".png,.jpg,.jpeg,.pdf"
+                multiple
+                onChange={e => setRefFiles(Array.from(e.target.files || []))}
+                className="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border file:border-border-default file:text-sm file:bg-white file:text-gray-700 hover:file:bg-surface"
+              />
+              {refFiles.length > 0 && (
+                <p className="mt-1 text-xs text-gray-400">{refFiles.length} file{refFiles.length > 1 ? 's' : ''} selected</p>
+              )}
             </div>
           </div>
         </section>

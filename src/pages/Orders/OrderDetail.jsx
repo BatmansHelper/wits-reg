@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Clock, FileText } from 'lucide-react'
+import { ChevronLeft, Clock, FileText, ImageIcon } from 'lucide-react'
 import { useOrder, useOrderActivity } from '../../hooks/useOrder'
 import { useAuth } from '../../hooks/useAuth'
 import StepTracker from '../../components/orders/StepTracker'
@@ -78,26 +78,12 @@ export default function OrderDetail() {
       {order.steps?.length > 0 && (
         <div className="bg-white rounded-lg border border-border-default p-5 mb-6">
           <h2 className="text-xs font-medium text-gray-500 mb-4 uppercase tracking-wider">Progress</h2>
-          <div className="flex items-center gap-3">
-            <StepTracker
-              steps={order.steps}
-              currentStepIndex={order.currentStepIndex}
-              onStepClick={i => setActiveStepIndex(i === activeStepIndex ? null : i)}
-            />
-          </div>
-          <div className="mt-4 flex items-center gap-4">
-            {order.steps.map((step, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveStepIndex(i === activeStepIndex ? null : i)}
-                className={`text-xs transition-colors ${
-                  i === displayStepIndex ? 'text-gray-900 font-medium' : 'text-gray-400 hover:text-gray-700'
-                }`}
-              >
-                {step.title}
-              </button>
-            ))}
-          </div>
+          <StepTracker
+            steps={order.steps}
+            currentStepIndex={order.currentStepIndex}
+            onStepClick={i => setActiveStepIndex(i === activeStepIndex ? null : i)}
+            showLabels
+          />
         </div>
       )}
 
@@ -151,6 +137,37 @@ export default function OrderDetail() {
             <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">Items</h3>
             <OrderItemsTable items={order.orderItems} />
           </div>
+
+          {/* Reference images */}
+          {order.referenceImages?.length > 0 && (
+            <div className="bg-white rounded-lg border border-border-default p-5">
+              <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Reference Images</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {order.referenceImages.map((img, i) => (
+                  img.fileType === 'image' ? (
+                    <a key={i} href={img.url} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={img.url}
+                        alt={img.name}
+                        className="w-full h-24 object-cover rounded border border-border-default hover:opacity-80 transition-opacity"
+                      />
+                    </a>
+                  ) : (
+                    <a
+                      key={i}
+                      href={img.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 p-2 border border-border-default rounded text-xs text-wits-blue hover:bg-surface transition-colors"
+                    >
+                      <ImageIcon size={14} />
+                      <span className="truncate">{img.name}</span>
+                    </a>
+                  )
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Notes */}
           {order.notes && (

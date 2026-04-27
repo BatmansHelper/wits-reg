@@ -46,7 +46,13 @@ export default function Sidebar() {
   return (
     <aside className="w-56 bg-sidebar flex-shrink-0 flex flex-col h-full">
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-white/10">
+      <div className="px-4 py-4 border-b border-white/10">
+        <img
+          src="/wits-logo.png"
+          alt="WITS University"
+          className="h-10 w-auto object-contain mb-3"
+          onError={e => { e.currentTarget.style.display = 'none' }}
+        />
         <div className="flex flex-col">
           <span className="text-white font-medium text-sm tracking-wide">WROP</span>
           <span className="text-gray-500 text-xs mt-0.5">Order Process</span>

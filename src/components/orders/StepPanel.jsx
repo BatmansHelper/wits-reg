@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { FileText, Image, File, Download, SkipForward, ChevronRight } from 'lucide-react'
+import { FileText, Image, File, Download, SkipForward, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
-import { canApproveStep, canUploadToStep, canSkipStep } from '../../utils/roleChecks'
-import { updateOrder, addActivity, serverTimestamp, Timestamp } from '../../lib/firestore'
+import { canApproveStep, canUploadToStep, canSkipStep, isAdmin } from '../../utils/roleChecks'
+import { updateOrder, addActivity, Timestamp } from '../../lib/firestore'
 import DocumentUploader from './DocumentUploader'
 import ApprovalActions from './ApprovalActions'
 import Badge from '../ui/Badge'
@@ -37,6 +37,7 @@ export default function StepPanel({ order, stepIndex }) {
   const canApprove = canApproveStep(userDoc, step) && step.status === 'awaiting_approval'
   const canSkip = canSkipStep(userDoc, step) && step.status !== 'skipped' && step.status !== 'approved'
   const isCurrentStep = stepIndex === order.currentStepIndex
+  const canComplete = isAdmin(userDoc) && !step.requiresApproval && step.status === 'in_progress' && isCurrentStep
 
   async function handleFileUploaded(fileResult, file) {
     const updatedSteps = [...order.steps]
@@ -66,6 +67,39 @@ export default function StepPanel({ order, stepIndex }) {
       performedByRole: userDoc.role,
       metadata: { fileName: file.name },
     })
+  }
+
+  async function handleComplete() {
+    setActionLoading(true)
+    try {
+      const updatedSteps = [...order.steps]
+      updatedSteps[stepIndex] = { ...updatedSteps[stepIndex], status: 'approved', completedAt: Timestamp.now() }
+      const nextIndex = stepIndex + 1
+      const hasNext = nextIndex < order.steps.length
+      if (hasNext) {
+        updatedSteps[nextIndex] = { ...updatedSteps[nextIndex], status: 'in_progress', startedAt: Timestamp.now() }
+      }
+      await updateOrder(order.id, {
+        steps: updatedSteps,
+        currentStepIndex: hasNext ? nextIndex : stepIndex,
+        status: hasNext ? 'active' : 'completed',
+      })
+      await addActivity(order.id, {
+        type: 'step_completed',
+        stepIndex,
+        stepTitle: step.title,
+        message: `${userDoc.displayName} completed "${step.title}"`,
+        performedBy: userDoc.id,
+        performedByName: userDoc.displayName,
+        performedByRole: userDoc.role,
+        metadata: {},
+      })
+      toast.success('Step completed')
+    } catch {
+      toast.error('Failed to complete step')
+    } finally {
+      setActionLoading(false)
+    }
   }
 
   async function handleApprove() {
@@ -193,18 +227,29 @@ export default function StepPanel({ order, stepIndex }) {
             <h3 className="mt-1 text-base font-medium text-gray-900">{step.title}</h3>
             <p className="mt-1 text-sm text-gray-500">{step.description}</p>
           </div>
-          {canSkip && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSkip}
-              loading={actionLoading}
-              className="flex-shrink-0"
-            >
-              <SkipForward size={14} />
-              Skip
-            </Button>
-          )}
+          <div className="flex gap-2 flex-shrink-0">
+            {canComplete && (
+              <Button
+                size="sm"
+                onClick={handleComplete}
+                loading={actionLoading}
+              >
+                <CheckCircle2 size={14} />
+                Mark Complete
+              </Button>
+            )}
+            {canSkip && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSkip}
+                loading={actionLoading}
+              >
+                <SkipForward size={14} />
+                Skip
+              </Button>
+            )}
+          </div>
         </div>
 
         {step.rejectionReason && (
