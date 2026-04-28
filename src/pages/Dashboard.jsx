@@ -66,7 +66,7 @@ export default function Dashboard() {
               <img
                 src="/wits-regalia-logo.png"
                 alt="WITS Regalia"
-                className="h-12 w-auto object-contain"
+                className="h-40 w-auto object-contain"
               />
             </div>
             <div>
