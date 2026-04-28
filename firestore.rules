@@ -33,13 +33,13 @@ service cloud.firestore {
     }
 
     match /orders/{orderId} {
-      allow read: if isAdmin() || (isViewer() && sameUni(resource.data.universityId));
+      allow read: if isAdmin() || isViewer();
       allow create: if isAdmin();
       allow update: if isAdmin();
       allow delete: if isSuperAdmin();
 
       match /activity/{activityId} {
-        allow read: if isAdmin() || (isViewer() && sameUni(get(/databases/$(database)/documents/orders/$(orderId)).data.universityId));
+        allow read: if isAdmin() || isViewer();
         allow create: if isAdmin();
         allow update, delete: if isSuperAdmin();
       }
