@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Clock, FileText, ImageIcon, Package } from 'lucide-react'
+import { ChevronLeft, Clock, FileText, ImageIcon } from 'lucide-react'
 import { useOrder, useOrderActivity } from '../../hooks/useOrder'
 import { useAuth } from '../../hooks/useAuth'
 import StepTracker from '../../components/orders/StepTracker'
@@ -9,27 +9,33 @@ import OrderItemsTable from '../../components/orders/OrderItemsTable'
 import Badge from '../../components/ui/Badge'
 import { formatDate, formatRelative, STATUS_LABELS } from '../../utils/formatters'
 
-function ActivityItem({ item }) {
-  const initials = (item.performedByName || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+function ActivityRow({ item }) {
+  const initials = (item.performedByName || '?')
+    .split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
   return (
-    <div className="flex gap-3 py-4 border-b border-gray-100 last:border-0">
-      <div className="w-8 h-8 rounded-full bg-wits-blue-light flex items-center justify-center flex-shrink-0">
-        <span className="text-xs font-bold text-wits-blue">{initials}</span>
-      </div>
-      <div className="flex-1 min-w-0 pt-0.5">
+    <tr className="border-b border-gray-50 last:border-0 group hover:bg-gray-50/40 transition-colors">
+      <td className="py-3 pr-6 align-top whitespace-nowrap">
+        <span className="text-xs font-medium text-gray-400">{formatDate(item.timestamp)}</span>
+      </td>
+      <td className="py-3 pr-6 align-top">
         <p className="text-sm text-gray-800">{item.message}</p>
-        <p className="text-xs text-gray-400 mt-1">{formatRelative(item.timestamp)}</p>
-      </div>
-    </div>
+        <p className="text-xs text-gray-400 mt-0.5">{formatRelative(item.timestamp)}</p>
+      </td>
+      <td className="py-3 align-top">
+        <div className="flex items-center gap-2 justify-end">
+          <span className="text-xs text-gray-400 whitespace-nowrap hidden sm:block">{item.performedByName}</span>
+          <div className="w-6 h-6 rounded-full bg-wits-blue-light flex items-center justify-center flex-shrink-0">
+            <span className="text-[9px] font-bold text-wits-blue">{initials}</span>
+          </div>
+        </div>
+      </td>
+    </tr>
   )
 }
 
-function InfoRow({ label, children }) {
+function SectionLabel({ children }) {
   return (
-    <div className="flex items-start justify-between gap-3 py-3 border-b border-gray-50 last:border-0">
-      <span className="text-sm text-gray-400 font-medium flex-shrink-0">{label}</span>
-      <span className="text-sm text-gray-900 font-semibold text-right">{children}</span>
-    </div>
+    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">{children}</p>
   )
 }
 
@@ -75,37 +81,36 @@ export default function OrderDetail() {
         Back
       </button>
 
-      {/* Header */}
+      {/* Header — PO prominent above title */}
       <div className="mb-8">
-        <div className="flex items-center gap-2.5 flex-wrap mb-2">
-          <span className="text-xs font-mono text-gray-400 tracking-wide">{order.orderNumber}</span>
-          {order.poNumber && (
-            <span className="text-xs font-mono bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md">
-              {order.poNumber}
-            </span>
-          )}
-          <Badge label={STATUS_LABELS[order.status] || order.status} variant={order.status} />
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            {order.poNumber && (
+              <p className="text-2xl font-bold text-wits-blue tracking-tight">{order.poNumber}</p>
+            )}
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight mt-0.5">{order.title}</h1>
+            <p className="text-sm text-gray-400 mt-1 font-medium">{order.facultyName} · {order.universityName}</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0 mt-1">
+            <Badge label={STATUS_LABELS[order.status] || order.status} variant={order.status} />
+            <span className="text-xs font-mono text-gray-400">{order.orderNumber}</span>
+          </div>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{order.title}</h1>
-        <p className="text-sm text-gray-400 mt-1 font-medium">{order.facultyName} · {order.universityName}</p>
       </div>
 
       {/* Step progress card */}
       {order.steps?.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-5">
             <div>
-              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Progress</p>
-              <p className="text-sm font-semibold text-gray-700">
+              <SectionLabel>Progress</SectionLabel>
+              <p className="text-sm font-semibold text-gray-700 -mt-2">
                 {completedCount} of {totalSteps} steps complete
               </p>
             </div>
-            <div className="text-right">
-              <p className="text-3xl font-bold text-gray-900 tabular-nums">{progressPct}%</p>
-            </div>
+            <p className="text-4xl font-bold text-gray-900 tabular-nums">{progressPct}%</p>
           </div>
 
-          {/* Progress bar */}
           <div className="h-1.5 bg-gray-100 rounded-full mb-6 overflow-hidden">
             <div
               className="h-full bg-wits-blue rounded-full transition-all duration-500"
@@ -123,29 +128,40 @@ export default function OrderDetail() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main: step panel */}
+        {/* Main column */}
         <div className="lg:col-span-2 space-y-4">
           <StepPanel order={order} stepIndex={displayStepIndex} />
+
+          {/* Order items — below step panel, same width */}
+          {order.orderItems?.length > 0 && (
+            <div className="bg-white rounded-2xl border border-gray-200 p-5">
+              <SectionLabel>Items</SectionLabel>
+              <OrderItemsTable items={order.orderItems} />
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
         <div className="space-y-4">
           {/* Order info */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Order info</p>
-            <div className="mt-3">
-              <InfoRow label="PO Number">{order.poNumber || '—'}</InfoRow>
-              <InfoRow label="Created">{formatDate(order.createdAt)}</InfoRow>
+          <div className="bg-white rounded-2xl border border-gray-200 p-5">
+            <SectionLabel>Order info</SectionLabel>
+            <dl className="space-y-0 divide-y divide-gray-50">
+              <div className="flex items-center justify-between py-2.5">
+                <dt className="text-sm text-gray-400">Created</dt>
+                <dd className="text-sm font-semibold text-gray-900">{formatDate(order.createdAt)}</dd>
+              </div>
               {order.estimatedDelivery && (
-                <InfoRow label="Est. delivery">
-                  <span className="flex items-center gap-1 justify-end">
+                <div className="flex items-center justify-between py-2.5">
+                  <dt className="text-sm text-gray-400">Est. delivery</dt>
+                  <dd className="flex items-center gap-1 text-sm font-semibold text-gray-900">
                     <Clock size={12} />
                     {formatDate(order.estimatedDelivery)}
-                  </span>
-                </InfoRow>
+                  </dd>
+                </div>
               )}
               {order.poDocumentUrl && (
-                <div className="pt-3">
+                <div className="py-2.5">
                   <a
                     href={order.poDocumentUrl}
                     target="_blank"
@@ -157,19 +173,13 @@ export default function OrderDetail() {
                   </a>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Order items */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Items</p>
-            <OrderItemsTable items={order.orderItems} />
+            </dl>
           </div>
 
           {/* Reference images */}
           {order.referenceImages?.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Reference Images</p>
+            <div className="bg-white rounded-2xl border border-gray-200 p-5">
+              <SectionLabel>Reference Images</SectionLabel>
               <div className="grid grid-cols-2 gap-2">
                 {order.referenceImages.map((img, i) => (
                   img.fileType === 'image' ? (
@@ -199,28 +209,41 @@ export default function OrderDetail() {
 
           {/* Notes */}
           {order.notes && (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Notes</p>
+            <div className="bg-white rounded-2xl border border-gray-200 p-5">
+              <SectionLabel>Notes</SectionLabel>
               <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{order.notes}</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* Activity log */}
-      <div className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Activity log</p>
-        <p className="text-sm font-semibold text-gray-700 mb-4">
-          {activity.length} {activity.length === 1 ? 'event' : 'events'}
-        </p>
+      {/* Activity log — table style like movement history */}
+      <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-6">
+        <div className="flex items-baseline gap-3 mb-5">
+          <SectionLabel>Activity log</SectionLabel>
+          {activity.length > 0 && (
+            <span className="text-xs font-semibold text-gray-400 -mt-3 mb-4">
+              {activity.length} events
+            </span>
+          )}
+        </div>
         {activity.length === 0 ? (
-          <p className="text-sm text-gray-400 py-4">No activity yet.</p>
+          <p className="text-sm text-gray-400 py-2">No activity yet.</p>
         ) : (
-          <div>
-            {activity.map(item => (
-              <ActivityItem key={item.id} item={item} />
-            ))}
-          </div>
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-100">
+                <th className="pb-2 text-left text-xs font-semibold text-gray-400 pr-6 w-28">Date</th>
+                <th className="pb-2 text-left text-xs font-semibold text-gray-400 pr-6">Action</th>
+                <th className="pb-2 text-right text-xs font-semibold text-gray-400">By</th>
+              </tr>
+            </thead>
+            <tbody>
+              {activity.map(item => (
+                <ActivityRow key={item.id} item={item} />
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>

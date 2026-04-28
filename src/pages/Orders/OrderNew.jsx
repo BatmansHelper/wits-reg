@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Plus, Trash2 } from 'lucide-react'
+
+const SIZES = ['2XS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL', '6XL', 'OSFA']
 import { useAuth } from '../../hooks/useAuth'
 import { createOrder, addActivity, getUniversities, getAllFaculties, getStepTemplates, serverTimestamp, Timestamp } from '../../lib/firestore'
 import { uploadOrderFile, uploadReferenceImage } from '../../lib/storage'
@@ -294,11 +296,15 @@ export default function OrderNew() {
                   />
                 </div>
                 <div className="col-span-2">
-                  <input
+                  <select
                     {...register(`orderItems.${i}.size`)}
-                    placeholder="Size"
-                    className="w-full border border-border-default rounded px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-wits-blue"
-                  />
+                    className="w-full border border-border-default rounded px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-wits-blue bg-white"
+                  >
+                    <option value="">Size</option>
+                    {SIZES.map(s => (
+                      <option key={s} value={s}>{s === 'OSFA' ? 'One Size' : s}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="col-span-1 flex justify-center pt-2">
                   {fields.length > 1 && (

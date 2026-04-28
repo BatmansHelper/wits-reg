@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileText, Image, File, Download, SkipForward, CheckCircle2 } from 'lucide-react'
+import { FileText, Image, File, Download, SkipForward, CheckCircle2, ChevronDown, ChevronUp, Paperclip } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { canApproveStep, canUploadToStep, canSkipStep, isAdmin } from '../../utils/roleChecks'
 import { updateOrder, addActivity, Timestamp } from '../../lib/firestore'
@@ -29,6 +29,7 @@ function AttachmentRow({ file }) {
 export default function StepPanel({ order, stepIndex }) {
   const { userDoc } = useAuth()
   const [actionLoading, setActionLoading] = useState(false)
+  const [docsOpen, setDocsOpen] = useState(false)
   const step = order?.steps?.[stepIndex]
 
   if (!step) return null
@@ -261,31 +262,58 @@ export default function StepPanel({ order, stepIndex }) {
       </div>
 
       {/* Documents */}
-      <div className="px-6 py-4">
-        {step.uploadTypes?.length > 0 && (
-          <p className="text-xs text-gray-500 mb-3">
-            Expected documents: {step.uploadTypes.join(', ')}
-          </p>
-        )}
+      {(step.attachments?.length > 0 || canUpload) && (
+        <div className="px-6 py-4">
+          <div className="w-full sm:w-1/2">
+            {/* Header toggle */}
+            <button
+              type="button"
+              onClick={() => setDocsOpen(o => !o)}
+              className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors mb-3"
+            >
+              <Paperclip size={14} className="text-gray-400" />
+              Documents
+              {step.attachments?.length > 0 && (
+                <span className="ml-1 text-xs font-bold text-wits-blue bg-wits-blue-light rounded-full px-2 py-0.5">
+                  {step.attachments.length}
+                </span>
+              )}
+              {docsOpen ? <ChevronUp size={14} className="text-gray-400 ml-auto" /> : <ChevronDown size={14} className="text-gray-400 ml-auto" />}
+            </button>
 
-        {step.attachments?.length > 0 ? (
-          <div className="mb-4">
-            {step.attachments.map((f, i) => (
-              <AttachmentRow key={i} file={f} />
-            ))}
+            {/* Expected types */}
+            {step.uploadTypes?.length > 0 && (
+              <p className="text-xs text-gray-400 mb-2">
+                Expected: {step.uploadTypes.join(', ')}
+              </p>
+            )}
+
+            {/* Collapsible file list */}
+            {docsOpen && (
+              <div className="mb-3">
+                {step.attachments?.length > 0 ? (
+                  <div className="border border-gray-100 rounded-xl overflow-hidden">
+                    {step.attachments.map((f, i) => (
+                      <AttachmentRow key={i} file={f} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 mb-3">No documents uploaded yet.</p>
+                )}
+              </div>
+            )}
+
+            {/* Upload area */}
+            {canUpload && isCurrentStep && (
+              <DocumentUploader
+                orderId={order.id}
+                stepIndex={stepIndex}
+                onUploaded={(result, file) => { handleFileUploaded(result, file); setDocsOpen(true) }}
+              />
+            )}
           </div>
-        ) : (
-          <p className="text-sm text-gray-400 mb-4">No documents uploaded yet.</p>
-        )}
-
-        {canUpload && isCurrentStep && (
-          <DocumentUploader
-            orderId={order.id}
-            stepIndex={stepIndex}
-            onUploaded={handleFileUploaded}
-          />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Approval actions */}
       {canApprove && isCurrentStep && (

@@ -63,10 +63,9 @@ export default function StepTracker({ steps, currentStepIndex, onStepClick, comp
               </button>
               {showLabels && (
                 <span
-                  className={`mt-2 text-[11px] text-center leading-tight w-16 truncate block
+                  className={`mt-2 text-[11px] text-center leading-tight w-24 block break-words hyphens-auto
                     ${isCurrent ? 'text-gray-900 font-semibold' : isCompleted ? 'text-wits-blue font-medium' : 'text-gray-400'}
                   `}
-                  title={step.title}
                 >
                   {step.title}
                 </span>
