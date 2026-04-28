@@ -8,7 +8,7 @@ import OrderCard from '../components/orders/OrderCard'
 
 function StatCard({ label, value, icon: Icon, accentColor, loading }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-2xl border border-wits-gold shadow-sm p-6 hover:shadow-md transition-shadow">
       <div
         className="w-10 h-10 rounded-xl flex items-center justify-center mb-4"
         style={{ backgroundColor: accentColor + '18' }}
@@ -62,7 +62,7 @@ export default function Dashboard() {
       <div className="bg-wits-blue px-8 pt-10 pb-14">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            <div className="bg-white rounded-xl p-2 flex-shrink-0 shadow-sm">
+            <div className="bg-white rounded-xl p-2 flex-shrink-0 shadow-sm border border-wits-gold">
               <img
                 src="/wits-regalia-logo.png"
                 alt="WITS Regalia"
