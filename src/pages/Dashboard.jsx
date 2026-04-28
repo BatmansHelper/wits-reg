@@ -62,12 +62,14 @@ export default function Dashboard() {
       <div className="bg-wits-blue px-8 pt-10 pb-14">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            <img
-              src="/wits-regalia-logo.png"
-              alt="WITS Regalia"
-              className="h-16 w-auto object-contain flex-shrink-0"
-              onError={e => { e.currentTarget.style.display = 'none' }}
-            />
+            <div className="bg-white rounded-xl p-2 flex-shrink-0 shadow-sm">
+              <img
+                src="/wits-regalia-logo.png"
+                alt="WITS Regalia"
+                className="h-12 w-auto object-contain"
+                onError={e => { e.currentTarget.style.display = 'none' }}
+              />
+            </div>
             <div>
               <p className="text-xs font-bold text-white/50 uppercase tracking-widest mb-1">WROP</p>
               <h1 className="text-3xl font-bold text-white tracking-tight">
