@@ -1,13 +1,18 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Clock, FileText, ImageIcon } from 'lucide-react'
+import { Clock, FileText, ImageIcon, Truck, CheckCircle2 } from 'lucide-react'
 import { useOrder, useOrderActivity } from '../../hooks/useOrder'
 import { useAuth } from '../../hooks/useAuth'
+import { isAdmin } from '../../utils/roleChecks'
+import { updateOrder, addActivity, Timestamp } from '../../lib/firestore'
 import StepTracker from '../../components/orders/StepTracker'
 import StepPanel from '../../components/orders/StepPanel'
 import OrderItemsTable from '../../components/orders/OrderItemsTable'
 import Badge from '../../components/ui/Badge'
+import Button from '../../components/ui/Button'
+import Modal from '../../components/ui/Modal'
 import { formatDate, formatRelative, STATUS_LABELS } from '../../utils/formatters'
+import toast from 'react-hot-toast'
 
 function ActivityRow({ item }) {
   const initials = (item.performedByName || '?')
@@ -45,6 +50,39 @@ export default function OrderDetail() {
   const { order, loading, error } = useOrder(orderId)
   const { activity } = useOrderActivity(orderId)
   const [activeStepIndex, setActiveStepIndex] = useState(null)
+  const [deliverOpen, setDeliverOpen] = useState(false)
+  const [deliveryNote, setDeliveryNote] = useState('')
+  const [delivering, setDelivering] = useState(false)
+
+  async function handleMarkDelivered() {
+    if (!deliveryNote.trim()) return
+    setDelivering(true)
+    try {
+      await updateOrder(order.id, {
+        status: 'delivered',
+        deliveredAt: Timestamp.now(),
+        deliveredBy: userDoc.id,
+        deliveryNote: deliveryNote.trim(),
+      })
+      await addActivity(order.id, {
+        type: 'order_delivered',
+        stepIndex: null,
+        stepTitle: null,
+        message: `${userDoc.displayName} marked order as delivered — ${deliveryNote.trim()}`,
+        performedBy: userDoc.id,
+        performedByName: userDoc.displayName,
+        performedByRole: userDoc.role,
+        metadata: { deliveryNote: deliveryNote.trim() },
+      })
+      toast.success('Order marked as delivered')
+      setDeliverOpen(false)
+      setDeliveryNote('')
+    } catch {
+      toast.error('Failed to mark as delivered')
+    } finally {
+      setDelivering(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -87,6 +125,42 @@ export default function OrderDetail() {
           </div>
         </div>
       </div>
+
+      {/* Delivered banner */}
+      {order.status === 'delivered' && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-6 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+            <CheckCircle2 size={20} className="text-emerald-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-emerald-800">
+              Delivered {formatDate(order.deliveredAt)}
+            </p>
+            {order.deliveryNote && (
+              <p className="text-sm text-emerald-700 mt-1">"{order.deliveryNote}"</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Mark as Delivered banner — shown to admins when completed */}
+      {order.status === 'completed' && isAdmin(userDoc) && (
+        <div className="bg-success-bg border border-success/20 rounded-2xl p-5 mb-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center flex-shrink-0">
+              <Truck size={18} className="text-success" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-success">All steps complete</p>
+              <p className="text-xs text-success/70 mt-0.5">Ready to mark this order as delivered</p>
+            </div>
+          </div>
+          <Button onClick={() => setDeliverOpen(true)}>
+            <Truck size={15} />
+            Mark as Delivered
+          </Button>
+        </div>
+      )}
 
       {/* Step progress card */}
       {order.steps?.length > 0 && (
@@ -237,5 +311,39 @@ export default function OrderDetail() {
         )}
       </div>
     </div>
+
+    {/* Mark as Delivered modal */}
+    <Modal
+      open={deliverOpen}
+      onClose={() => { setDeliverOpen(false); setDeliveryNote('') }}
+      title="Mark as Delivered"
+      footer={
+        <>
+          <Button variant="ghost" onClick={() => { setDeliverOpen(false); setDeliveryNote('') }}>
+            Cancel
+          </Button>
+          <Button onClick={handleMarkDelivered} disabled={!deliveryNote.trim()} loading={delivering}>
+            <Truck size={15} />
+            Confirm Delivery
+          </Button>
+        </>
+      }
+    >
+      <p className="text-sm text-gray-500 mb-4">
+        Add a delivery note confirming this order has been handed over. This will be recorded in the activity log.
+      </p>
+      <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+        Delivery note <span className="text-danger">*</span>
+      </label>
+      <textarea
+        value={deliveryNote}
+        onChange={e => setDeliveryNote(e.target.value)}
+        rows={4}
+        placeholder="e.g. Delivered to Engineering Faculty reception. Signed by Jane Smith on 30 Apr 2026."
+        className="w-full border border-border-default rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-wits-blue resize-none"
+        autoFocus
+      />
+      <p className="text-xs text-gray-400 mt-1.5">Required — logged in activity trail.</p>
+    </Modal>
   )
 }

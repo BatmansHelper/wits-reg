@@ -42,7 +42,8 @@ export default function Dashboard() {
     const active = orders.filter(o => o.status === 'active').length
     const awaitingAction = orders.filter(o => needsAction(o, userDoc)).length
     const completed = orders.filter(o => o.status === 'completed').length
-    return { active, awaitingAction, completed }
+    const delivered = orders.filter(o => o.status === 'delivered').length
+    return { active, awaitingAction, completed, delivered }
   }, [orders, userDoc])
 
   const sorted = useMemo(() => {
@@ -75,28 +76,11 @@ export default function Dashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
-        <StatCard
-          label="Active orders"
-          value={stats.active}
-          icon={TrendingUp}
-          accentColor="#003DA5"
-          loading={loading}
-        />
-        <StatCard
-          label="Awaiting your action"
-          value={stats.awaitingAction}
-          icon={Zap}
-          accentColor="#C9A84C"
-          loading={loading}
-        />
-        <StatCard
-          label="Completed"
-          value={stats.completed}
-          icon={CheckCircle}
-          accentColor="#16a34a"
-          loading={loading}
-        />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+        <StatCard label="Active" value={stats.active} icon={TrendingUp} accentColor="#003DA5" loading={loading} />
+        <StatCard label="Needs action" value={stats.awaitingAction} icon={Zap} accentColor="#C9A84C" loading={loading} />
+        <StatCard label="Completed" value={stats.completed} icon={CheckCircle} accentColor="#16a34a" loading={loading} />
+        <StatCard label="Delivered" value={stats.delivered} icon={CheckCircle} accentColor="#059669" loading={loading} />
       </div>
 
       {/* Orders section */}

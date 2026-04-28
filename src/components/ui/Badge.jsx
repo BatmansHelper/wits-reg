@@ -2,6 +2,7 @@ const VARIANTS = {
   // Order status
   active: 'bg-wits-blue-light text-wits-blue',
   completed: 'bg-success-bg text-success',
+  delivered: 'bg-emerald-100 text-emerald-800',
   on_hold: 'bg-warning-bg text-warning',
   cancelled: 'bg-danger-bg text-danger',
   // Step status

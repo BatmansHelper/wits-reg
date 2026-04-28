@@ -34,6 +34,7 @@ export const ROLE_LABELS = {
 export const STATUS_LABELS = {
   active: 'Active',
   completed: 'Completed',
+  delivered: 'Delivered',
   on_hold: 'On Hold',
   cancelled: 'Cancelled',
 }

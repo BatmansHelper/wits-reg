@@ -11,6 +11,7 @@ const STATUS_FILTERS = [
   { label: 'All', value: undefined },
   { label: 'Active', value: 'active' },
   { label: 'Completed', value: 'completed' },
+  { label: 'Delivered', value: 'delivered' },
   { label: 'On hold', value: 'on_hold' },
 ]
 
