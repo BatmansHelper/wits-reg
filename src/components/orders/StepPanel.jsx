@@ -178,13 +178,14 @@ export default function StepPanel({ order, stepIndex }) {
     finally { setActionLoading(false) }
   }
 
-  async function handleApprove() {
+  async function handleApprove(note) {
     setActionLoading(true)
     try {
       const updatedSteps = [...order.steps]
       updatedSteps[stepIndex] = {
         ...updatedSteps[stepIndex], status: 'approved',
         approvedBy: userDoc.id, approvedAt: Timestamp.now(), completedAt: Timestamp.now(),
+        approvalNote: note,
       }
       const nextIndex = stepIndex + 1
       const hasNext = nextIndex < order.steps.length
@@ -196,9 +197,9 @@ export default function StepPanel({ order, stepIndex }) {
       })
       await addActivity(order.id, {
         type: 'step_approved', stepIndex, stepTitle: step.title,
-        message: `${userDoc.displayName} approved "${step.title}"`,
+        message: `${userDoc.displayName} approved "${step.title}" — ${note}`,
         performedBy: userDoc.id, performedByName: userDoc.displayName,
-        performedByRole: userDoc.role, metadata: {},
+        performedByRole: userDoc.role, metadata: { approvalNote: note },
       })
       toast.success('Step approved')
     } catch { toast.error('Failed to approve — please try again') }
@@ -363,7 +364,7 @@ export default function StepPanel({ order, stepIndex }) {
         {canApprove && isCurrentStep && (
           <div className="px-6 py-4 bg-wits-gold-light border-t border-wits-gold/20">
             <p className="text-sm font-bold text-warning mb-3">Your approval is required</p>
-            <ApprovalActions onApprove={handleApprove} onReject={handleReject} loading={actionLoading} />
+            <ApprovalActions onApprove={handleApprove} onReject={handleReject} loading={actionLoading} stepTitle={step.title} />
           </div>
         )}
       </div>
