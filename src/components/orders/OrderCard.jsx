@@ -52,6 +52,13 @@ export default function OrderCard({ order, userDoc }) {
           {order.title}
         </span>
 
+        {/* Est. delivery */}
+        {order.estimatedDelivery && (
+          <span className="text-xs font-bold text-danger flex-shrink-0 hidden sm:block whitespace-nowrap">
+            Est. delivery: {formatDate(order.estimatedDelivery)}
+          </span>
+        )}
+
         {/* Status badge */}
         <Badge label={STATUS_LABELS[order.status] || order.status} variant={order.status} />
 
