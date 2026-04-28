@@ -67,7 +67,6 @@ export default function Dashboard() {
                 src="/wits-regalia-logo.png"
                 alt="WITS Regalia"
                 className="h-12 w-auto object-contain"
-                onError={e => { e.currentTarget.style.display = 'none' }}
               />
             </div>
             <div>
