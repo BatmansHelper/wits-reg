@@ -5,7 +5,6 @@ import { useOrders } from '../hooks/useOrders'
 import { useAuth } from '../hooks/useAuth'
 import { canCreateOrder } from '../utils/roleChecks'
 import OrderCard from '../components/orders/OrderCard'
-import Button from '../components/ui/Button'
 
 function StatCard({ label, value, icon: Icon, accentColor, loading }) {
   return (
@@ -58,24 +57,38 @@ export default function Dashboard() {
   const firstName = userDoc?.displayName?.split(' ')[0] || null
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-end justify-between mb-10">
-        <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">WROP</p>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-            {firstName ? `Welcome back, ${firstName}` : 'Dashboard'}
-          </h1>
+    <div>
+      {/* Blue hero banner */}
+      <div className="bg-wits-blue px-8 pt-10 pb-14">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <img
+              src="/wits-regalia-logo.png"
+              alt="WITS Regalia"
+              className="h-16 w-auto object-contain flex-shrink-0"
+              onError={e => { e.currentTarget.style.display = 'none' }}
+            />
+            <div>
+              <p className="text-xs font-bold text-white/50 uppercase tracking-widest mb-1">WROP</p>
+              <h1 className="text-3xl font-bold text-white tracking-tight">
+                {firstName ? `Welcome back, ${firstName}` : 'Dashboard'}
+              </h1>
+            </div>
+          </div>
+          {canCreate && (
+            <Link
+              to="/orders/new"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-white text-wits-blue hover:bg-white/90 transition-colors flex-shrink-0"
+            >
+              <Plus size={16} />
+              New Order
+            </Link>
+          )}
         </div>
-        {canCreate && (
-          <Button as={Link} to="/orders/new">
-            <Plus size={16} />
-            New Order
-          </Button>
-        )}
       </div>
 
-      {/* Stat cards */}
+    <div className="px-8 max-w-6xl mx-auto -mt-6">
+      {/* Stat cards — overlap the blue hero */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
         <StatCard label="Active" value={stats.active} icon={TrendingUp} accentColor="#003DA5" loading={loading} />
         <StatCard label="Needs action" value={stats.awaitingAction} icon={Zap} accentColor="#C9A84C" loading={loading} />
@@ -113,11 +126,12 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 pb-8">
         {sorted.map(order => (
           <OrderCard key={order.id} order={order} userDoc={userDoc} />
         ))}
       </div>
+    </div>
     </div>
   )
 }
