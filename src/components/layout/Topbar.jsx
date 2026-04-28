@@ -18,18 +18,15 @@ export default function Topbar() {
   }
 
   return (
-    <header className="h-14 bg-white border-b border-border-default flex items-center justify-between px-6 flex-shrink-0">
-      <div />
-      <div className="flex items-center gap-4">
-        <span className="text-sm text-gray-500">{userDoc?.email}</span>
-        <button
-          onClick={handleSignOut}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
-        >
-          <LogOut size={15} />
-          Sign out
-        </button>
-      </div>
+    <header className="h-11 bg-wits-blue border-b border-white/10 flex items-center justify-end px-6 flex-shrink-0 gap-4">
+      <span className="text-sm text-white/60">{userDoc?.email}</span>
+      <button
+        onClick={handleSignOut}
+        className="flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
+      >
+        <LogOut size={14} />
+        Sign out
+      </button>
     </header>
   )
 }

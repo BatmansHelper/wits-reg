@@ -38,19 +38,19 @@ export default function OrderCard({ order, userDoc }) {
         {/* Header row */}
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-mono text-gray-400 tracking-wide">{order.orderNumber}</span>
-              {order.poNumber && (
-                <span className="text-xs font-mono bg-gray-50 text-gray-500 px-2 py-0.5 rounded-md border border-gray-100">
-                  {order.poNumber}
-                </span>
-              )}
-              <Badge label={STATUS_LABELS[order.status] || order.status} variant={order.status} />
-              {action && <Badge label="Action needed" variant="awaiting_approval" />}
-            </div>
-            <h3 className="mt-2 text-base font-semibold text-gray-900 group-hover:text-wits-blue transition-colors truncate">
+            {/* PO number — bold and prominent above title */}
+            {order.poNumber && (
+              <p className="text-base font-bold text-wits-blue tracking-tight leading-tight">
+                {order.poNumber}
+              </p>
+            )}
+            <h3 className={`font-semibold text-gray-900 group-hover:text-wits-blue transition-colors truncate ${order.poNumber ? 'text-base mt-0.5' : 'text-base'}`}>
               {order.title}
             </h3>
+            <div className="flex items-center gap-2 flex-wrap mt-1.5">
+              <span className="text-xs font-mono text-gray-400 tracking-wide">{order.orderNumber}</span>
+              <Badge label={STATUS_LABELS[order.status] || order.status} variant={order.status} />
+            </div>
             <p className="text-sm text-gray-400 mt-0.5">
               {order.universityName} · {order.facultyName}
             </p>

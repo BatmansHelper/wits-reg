@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Clock, FileText, ImageIcon } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+import { Clock, FileText, ImageIcon } from 'lucide-react'
 import { useOrder, useOrderActivity } from '../../hooks/useOrder'
 import { useAuth } from '../../hooks/useAuth'
 import StepTracker from '../../components/orders/StepTracker'
@@ -41,7 +41,6 @@ function SectionLabel({ children }) {
 
 export default function OrderDetail() {
   const { orderId } = useParams()
-  const navigate = useNavigate()
   const { userDoc } = useAuth()
   const { order, loading, error } = useOrder(orderId)
   const { activity } = useOrderActivity(orderId)
@@ -72,15 +71,6 @@ export default function OrderDetail() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
-      {/* Back */}
-      <button
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-800 mb-6 transition-colors font-medium"
-      >
-        <ChevronLeft size={15} />
-        Back
-      </button>
-
       {/* Header — PO prominent above title */}
       <div className="mb-8">
         <div className="flex items-start justify-between gap-4">
