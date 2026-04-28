@@ -141,7 +141,7 @@ export default function OrderCard({ order, userDoc }) {
             <div className="flex justify-end">
               <button
                 onClick={() => navigate(`/orders/${order.id}`)}
-                className="flex items-center gap-1.5 text-sm font-bold text-wits-blue hover:underline"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-wits-blue bg-wits-blue-light rounded-lg hover:bg-wits-blue hover:text-white transition-colors"
               >
                 View full order <ArrowRight size={14} />
               </button>

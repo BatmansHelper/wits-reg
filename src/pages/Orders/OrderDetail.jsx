@@ -108,6 +108,7 @@ export default function OrderDetail() {
   const progressPct = totalSteps > 0 ? Math.round((completedCount / totalSteps) * 100) : 0
 
   return (
+    <>
     <div className="p-8 max-w-6xl mx-auto">
       {/* Header — PO prominent above title */}
       <div className="mb-8">
@@ -345,5 +346,6 @@ export default function OrderDetail() {
       />
       <p className="text-xs text-gray-400 mt-1.5">Required — logged in activity trail.</p>
     </Modal>
+    </>
   )
 }
